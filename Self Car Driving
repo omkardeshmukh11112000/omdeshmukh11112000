@@ -1,0 +1,664 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyNsyJQ83F3ms2ditJrLGCki",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/omkardeshmukh11112000/omdeshmukh11112000/blob/main/Self%20Car%20Driving\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 2,
+      "metadata": {
+        "id": "5b1QXLYZXdhX"
+      },
+      "outputs": [],
+      "source": [
+        "import os\n",
+        "import numpy as np\n",
+        "import matplotlib.pyplot as plt"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import matplotlib.image as mpimg"
+      ],
+      "metadata": {
+        "id": "JjYptd4FXm2v"
+      },
+      "execution_count": 3,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from keras.models import Sequential\n",
+        "from keras.optimizers import Adam\n",
+        "from keras.layers import Convolution2D,Dense,MaxPooling2D,Dropout,Flatten\n",
+        "import cv2\n",
+        "from sklearn.utils import shuffle\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "import pandas as pd\n",
+        "import random\n",
+        "import ntpath"
+      ],
+      "metadata": {
+        "id": "cTRFA_eZXmzQ"
+      },
+      "execution_count": 4,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "datadir = '/kaggle/input/selfdriving-car-dataset/data-master/'"
+      ],
+      "metadata": {
+        "id": "qYFmXKfEXmwJ"
+      },
+      "execution_count": 5,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "dataset = pd.read_csv(os.path.join(datadir,'/kaggle/input/selfdriving-car-dataset/data-master/driving_log.csv'),names=columns)"
+      ],
+      "metadata": {
+        "id": "Nkei5f_vcjmJ"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "os.path.join(datadir,'/kaggle/input/selfdriving-car-dataset/data-master/driving_log.csv')"
+      ],
+      "metadata": {
+        "id": "z_AKT9T9Xmqf"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "dataset.head()"
+      ],
+      "metadata": {
+        "id": "kmMoazrTXmns"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def removePath(path):\n",
+        "  base,tail = ntpath.split(path)\n",
+        "  return tail"
+      ],
+      "metadata": {
+        "id": "Il6FPN_NXmlX"
+      },
+      "execution_count": 8,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "dataset['center'] = dataset['center'].apply(removePath)"
+      ],
+      "metadata": {
+        "id": "V1c5dRUaXmjA"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "dataset['left'] = dataset['left'].apply(removePath)"
+      ],
+      "metadata": {
+        "id": "qnGqhFYpXmgs"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "dataset['right'] = dataset['right'].apply(removePath)"
+      ],
+      "metadata": {
+        "id": "9Tk3Ky-cXmem"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "dataset.head()"
+      ],
+      "metadata": {
+        "id": "DNstEy62XmcL"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "num_bins = 25"
+      ],
+      "metadata": {
+        "id": "sbCMKQ-lXmZE"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "hist,bins = np.histogram(dataset['steering'],num_bins)"
+      ],
+      "metadata": {
+        "id": "nSq_BpgsXmVr"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "print(hist)\n",
+        "print(bins)"
+      ],
+      "metadata": {
+        "id": "hyJbFULrXmS2"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "center = (bins[:-1]+bins[1:])*0.5"
+      ],
+      "metadata": {
+        "id": "oYv0BwVQXmPc"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "center"
+      ],
+      "metadata": {
+        "id": "4sFFYvGyXmLo"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "center1 = []\n",
+        "for i in range(0,len(bins)-1):\n",
+        "  x = (bins[i] + bins[i+1]) * 0.5\n",
+        "  center1.append(x)"
+      ],
+      "metadata": {
+        "id": "Unf-rdF7XmIt"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "center1"
+      ],
+      "metadata": {
+        "id": "ric887CBXmFd"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "threshold = 500\n",
+        "plt.figure(figsize=(15,10))\n",
+        "plt.bar(center,hist,width=0.05)\n",
+        "plt.xticks(np.linspace(-1,1,25),rotation=90)\n",
+        "(x1,x2) = (np.min(dataset['steering']),np.max(dataset['steering']))\n",
+        "(y1,y2) = (threshold,threshold)\n",
+        "plt.title('Steering Angles')\n",
+        "plt.plot((x1,x2),(y1,y2))"
+      ],
+      "metadata": {
+        "id": "GyhkScBwXmBY"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "remove_list = []\n",
+        "for i in range(num_bins):\n",
+        "  List = []\n",
+        "  for j in range(len(dataset['steering'])):\n",
+        "    if dataset['steering'][j] >= bins[i] and dataset['steering'][j] <= bins[i+1]:\n",
+        "      List.append(j)\n",
+        "  List = shuffle(List)\n",
+        "  List = List[threshold:]\n",
+        "  remove_list.extend(List)"
+      ],
+      "metadata": {
+        "id": "YAEgPoeoXl-2"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(dataset['steering']) "
+      ],
+      "metadata": {
+        "id": "qKXmtZmfXl8I"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(remove_list)"
+      ],
+      "metadata": {
+        "id": "POU7frnlXl5h"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "dataset.drop(dataset.index[remove_list],inplace=True)"
+      ],
+      "metadata": {
+        "id": "7FUj_tN4Xl26"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "hist,_ = np.histogram(dataset['steering'],num_bins)"
+      ],
+      "metadata": {
+        "id": "jfKbDRiDXl0l"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "plt.bar(center,hist,width=0.05)\n",
+        "plt.xticks(np.linspace(-1,1,25),rotation=90)\n",
+        "(x1,x2) = (np.min(dataset['steering']),np.max(dataset['steering']))\n",
+        "(y1,y2) = (threshold,threshold)\n",
+        "plt.title('Steering Angles')\n",
+        "plt.plot((x1,x2),(y1,y2))"
+      ],
+      "metadata": {
+        "id": "_rq3ZZzYXlya"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "dataset.iloc[1]"
+      ],
+      "metadata": {
+        "id": "XYmJu7PJXlwE"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "datadir"
+      ],
+      "metadata": {
+        "id": "jfvfddcQXlt0"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def loadImageSteering(datadir,dataset):\n",
+        "  imagePath = []\n",
+        "  steeringPath = []\n",
+        "  for i in range(len(dataset)):\n",
+        "    center = dataset.iloc[i][0]\n",
+        "    steering = float(dataset.iloc[i][3])\n",
+        "    imagePath.append(os.path.join(datadir,center))\n",
+        "    steeringPath.append(steering)\n",
+        "  imagePath = np.asarray(imagePath)\n",
+        "  steeringPath = np.asarray(steeringPath)\n",
+        "  return imagePath,steeringPath"
+      ],
+      "metadata": {
+        "id": "Zu4TeTsDXlrR"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "dataset.iloc[0][0]"
+      ],
+      "metadata": {
+        "id": "YA8vwkfZXlo7"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "imagePath,steeringPath = loadImageSteering(datadir+'/IMG',dataset)"
+      ],
+      "metadata": {
+        "id": "X4ljdKI7Xlmg"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "imagePath[0]"
+      ],
+      "metadata": {
+        "id": "iaLSRqxVXlkG"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(steeringPath)"
+      ],
+      "metadata": {
+        "id": "jm5QKCJhXlhY"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.model_selection import train_test_split"
+      ],
+      "metadata": {
+        "id": "hSpz1jcfXlfU"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "x_train,x_test,y_train,y_test = train_test_split(imagePath,steeringPath,random_state=6,test_size=0.2)"
+      ],
+      "metadata": {
+        "id": "GHrflGQWXldM"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "len(x_train)"
+      ],
+      "metadata": {
+        "id": "kPmtwVFqXlau"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "plt.figure(figsize=(15,10))\n",
+        "plt.hist(y_train,bins=num_bins,width=0.05)\n",
+        "plt.xticks(np.linspace(-1,1,25),rotation=45)\n",
+        "plt.title(\"Training Dataset\")\n",
+        "plt.show()"
+      ],
+      "metadata": {
+        "id": "3l-kU8b7XlYd"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "plt.figure(figsize=(15,10))\n",
+        "plt.hist(y_test,bins=num_bins,width=0.05)\n",
+        "plt.xticks(np.linspace(-1,1,25),rotation=45)\n",
+        "plt.title(\"Testing Dataset\")\n",
+        "plt.show()"
+      ],
+      "metadata": {
+        "id": "GfCHD7rbY7Pt"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def imagePreprocessing(img):\n",
+        "  img = mpimg.imread(img)\n",
+        "  img = img[60:135,:,:]\n",
+        "  img = cv2.cvtColor(img,cv2.COLOR_RGB2YUV)\n",
+        "  img = cv2.GaussianBlur(img,(3,3),0)\n",
+        "  img = cv2.resize(img,(200,66))\n",
+        "  img = img/255\n",
+        "  return img"
+      ],
+      "metadata": {
+        "id": "51FjRcvmY7ML"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "image = imagePath[1]\n",
+        "image = mpimg.imread(image)\n",
+        "fig,axs = plt.subplots(1,2,figsize=(15,10))\n",
+        "fig.tight_layout()\n",
+        "axs[0].imshow(image)\n",
+        "axs[0].grid(False)\n",
+        "axs[0].set_title(\"Original Image\")\n",
+        "axs[1].imshow(imagePreprocessing(imagePath[1]))\n",
+        "axs[1].grid(False)\n",
+        "axs[1].set_title(\"Precessed Image\")\n",
+        "plt.show()"
+      ],
+      "metadata": {
+        "id": "pg-A1wIdY7KV"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "x_train = np.array(list(map(imagePreprocessing,x_train)))"
+      ],
+      "metadata": {
+        "id": "jxW_TfaWY7IN"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "x_test = np.array(list(map(imagePreprocessing,x_test)))"
+      ],
+      "metadata": {
+        "id": "5nBUOU94Y7GG"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def nvidiaModel():\n",
+        "  model = Sequential()\n",
+        "  model.add(Convolution2D(24,(5,5),strides=(2,2),input_shape=(66,200,3),activation=\"elu\"))\n",
+        "  model.add(Convolution2D(36,(5,5),strides=(2,2),activation=\"elu\"))\n",
+        "  model.add(Convolution2D(48,(5,5),strides=(2,2),activation=\"elu\")) \n",
+        "  model.add(Convolution2D(64,(3,3),activation=\"elu\"))   \n",
+        "  model.add(Convolution2D(64,(3,3),activation=\"elu\"))\n",
+        "  model.add(Dropout(0.5))\n",
+        "  \n",
+        "  model.add(Flatten())\n",
+        "  \n",
+        "  model.add(Dense(100,activation=\"elu\"))\n",
+        "  model.add(Dropout(0.5))\n",
+        "  \n",
+        "  model.add(Dense(50,activation=\"elu\"))\n",
+        "  model.add(Dropout(0.5))\n",
+        "  \n",
+        "  model.add(Dense(10,activation=\"elu\"))\n",
+        "  model.add(Dropout(0.5))\n",
+        "  \n",
+        "  model.add(Dense(1))\n",
+        "  model.compile(optimizer=Adam(lr=1e-3),loss=\"mse\")\n",
+        "  \n",
+        "  return model"
+      ],
+      "metadata": {
+        "id": "WcvvKUb1Y7Dj"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "model = nvidiaModel()"
+      ],
+      "metadata": {
+        "id": "D_YjW5OzY7Bb"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "model.summary()"
+      ],
+      "metadata": {
+        "id": "QUHOnCSSZQUO"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "h = model.fit(x_train,y_train,validation_data=(x_test,y_test),epochs=30,batch_size=100,shuffle=1,verbose=1)"
+      ],
+      "metadata": {
+        "id": "l9J8gIVIZQL6"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "plt.plot(h.history['loss'])\n",
+        "plt.plot(h.history['val_loss'])"
+      ],
+      "metadata": {
+        "id": "5omnfuhEZQG4"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "model.save('car.h5')"
+      ],
+      "metadata": {
+        "id": "DpOtCtGzZXQ1"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "str"
+      ],
+      "metadata": {
+        "id": "5QxITxqgZXJi"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
